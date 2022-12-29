@@ -8,7 +8,8 @@ to receive feedback.
 
 DateSelect with DatePicker example:
 
-![DateSelect with DatePicker](https://user-images.githubusercontent.com/922559/209947537-30953968-a774-4e1f-862d-fab4d72f0df2.png)
+![DateSelect with DatePicker](https://user-images.githubusercontent.com/922559/209947716-3ee53f74-4d98-4d9c-a261-afb84955d519.png)
+
 
 ## Usage
 
