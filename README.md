@@ -6,6 +6,10 @@ A DatePicker widget for [textual](https://github.com/Textualize/textual). It can
 A working version (>= 0.1.0) will be released in January 2023. I'm happy
 to receive feedback.
 
+DateSelect with DatePicker example:
+
+![DateSelect with DatePicker](https://user-images.githubusercontent.com/922559/209936036-22ecb6e9-0d14-4336-b360-67c37e2ccbda.png)
+
 ## Usage
 
 ```python
