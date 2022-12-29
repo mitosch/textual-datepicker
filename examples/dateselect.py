@@ -5,7 +5,7 @@ from textual.widgets import Header, Footer, Label
 from textual_datepicker import DateSelect
 
 
-class DropdownApp(App):
+class DateSelectApp(App):
     CSS = """
     #main_container {
         padding: 2 5;
@@ -36,5 +36,5 @@ class DropdownApp(App):
 
 
 if __name__ == "__main__":
-    app = DropdownApp()
+    app = DateSelectApp()
     app.run()
