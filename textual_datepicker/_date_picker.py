@@ -15,6 +15,16 @@ from textual.message import Message
 
 
 class MonthControl(Button, can_focus=True):
+    DEFAULT_CSS = """
+    MonthControl {
+        height: 1;
+        border: none;
+    }
+    MonthControl.-active,
+    MonthControl:hover {
+        border: none;
+    }
+    """
     pass
 
 
