@@ -2,6 +2,10 @@
 
 A DatePicker widget for [textual](https://github.com/Textualize/textual). It can be used standalone or with a DateSelect opening the dialog.
 
+DateSelect with DatePicker example:
+
+![DateSelect with DatePicker](https://user-images.githubusercontent.com/922559/209936036-22ecb6e9-0d14-4336-b360-67c37e2ccbda.png)
+
 **NOTE:** This package is in a concept phase. A working version (>= 0.1.0) will
 be release in January 2023. I'm currently preparing it for publishing on PyPI and
 happy to receive feedback.
