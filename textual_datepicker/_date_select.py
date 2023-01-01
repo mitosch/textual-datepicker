@@ -46,8 +46,6 @@ class DatePickerDialog(Widget):
 class DateSelect(Widget, can_focus=True):
     """A select widget which opens the DatePicker and displays the selected date."""
 
-    # TODO: implement given date
-
     DEFAULT_CSS = """
     DateSelect {
       background: $boost;
@@ -71,7 +69,7 @@ class DateSelect(Widget, can_focus=True):
     def __init__(
         self,
         picker_mount: str,
-        date: pendulum.DateTime | str | None = None,
+        date: pendulum.DateTime | None = None,
         format: str = "YYYY-MM-DD",
         placeholder: str = "",
         name: str | None = None,
@@ -82,6 +80,9 @@ class DateSelect(Widget, can_focus=True):
         self.picker_mount = picker_mount
         self.placeholder = placeholder
         self.format = format
+
+        if date is not None:
+            self.date = date
 
         # DatePickerDialog widget
         self.dialog = None
@@ -133,8 +134,9 @@ class DateSelect(Widget, can_focus=True):
         self.dialog.offset = (
             self.dialog.offset.x, self.dialog.offset.y + 3)
 
-        # TODO: this could not work by a given default
         if self.date is not None:
+            if self.date is not None:
+                self.dialog.date_picker.date = self.date
             for day in self.dialog.query("DayLabel.--day"):
                 if day.day == self.date.day:
                     day.focus()

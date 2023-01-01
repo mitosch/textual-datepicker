@@ -1,3 +1,5 @@
+# import pendulum
+
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Header, Footer, Label
@@ -28,7 +30,8 @@ class DateSelectApp(App):
             DateSelect(
                 placeholder="please select",
                 format="YYYY-MM-DD",
-                picker_mount="#main_container"
+                picker_mount="#main_container",
+                # date=pendulum.parse("2023-02-14")
             ),
 
             id="main_container"
