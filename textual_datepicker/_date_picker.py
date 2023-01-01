@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import calendar
 import pendulum
 
@@ -110,6 +109,9 @@ class DayLabel(Widget):
 
 
 class DatePicker(Widget):
+    # FIXME: Solution for race-condition: move focus to MonthControl for any _move_month
+    #   Explanation: trying to solve it by getting rid of FocusLost completely,
+    #   will lead into page-up/down no longer working
     DEFAULT_CSS = """
     DatePicker {
         width: 26;
@@ -240,7 +242,7 @@ class DatePicker(Widget):
         # OPTIMIZE: should focus first or last, not the exact one
         nearest = None
         for day_label in self.query("DayContainer DayLabel"):
-            if day_label.day == None:
+            if day_label.day is None:
                 continue
             if day_label.day > 0:
                 nearest = day_label
