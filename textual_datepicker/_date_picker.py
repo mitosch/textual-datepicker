@@ -109,9 +109,6 @@ class DayLabel(Widget):
 
 
 class DatePicker(Widget):
-    # FIXME: Solution for race-condition: move focus to MonthControl for any _move_month
-    #   Explanation: trying to solve it by getting rid of FocusLost completely,
-    #   will lead into page-up/down no longer working
     DEFAULT_CSS = """
     DatePicker {
         width: 26;
@@ -218,7 +215,6 @@ class DatePicker(Widget):
         self._update_day_widgets()
 
     def watch_focused(self, index) -> None:
-        # FIXME: fast forward could blink between two dates. possible race-condition
         if index is None:
             return
 
@@ -236,19 +232,14 @@ class DatePicker(Widget):
         self.focused = container.children.index(event.sender)
 
     def on_day_label_focus_lost(self, event: DayLabel.FocusLost) -> None:
-        """The previous focused day is no longer on this position.
-        Try to find a better one: Same day as before, or last one.
+        """The previous focused day is no longer focusable on this position.
+        If it was at the end of a month, set it to end of the 4th row, there
+        is always a focusable day. Otherwise to the first on the 2nd row.
         """
-        # OPTIMIZE: should focus first or last, not the exact one
-        nearest = None
-        for day_label in self.query("DayContainer DayLabel"):
-            if day_label.day is None:
-                continue
-            if day_label.day > 0:
-                nearest = day_label
-            if day_label.day == event.day:
-                break
-        nearest.focus()
+        if event.day >= 28:
+            self.focused = 27
+        else:
+            self.focused = 7
 
     def on_day_label_selected(self, event: DayLabel.Selected) -> None:
         self.selected_date = pendulum.datetime(
