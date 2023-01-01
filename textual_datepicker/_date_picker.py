@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import calendar
 import pendulum
 
@@ -188,7 +189,12 @@ class DatePicker(Widget):
 
         if self.focused >= 0:
             container = self.day_container
-            return container.children[self.focused]
+            day_label = container.children[self.focused]
+
+            if day_label.day is None:
+                # an old non-selectable DayLabel may have/had focus
+                return None
+            return day_label
 
         return None
 
@@ -213,6 +219,7 @@ class DatePicker(Widget):
         # FIXME: fast forward could blink between two dates. possible race-condition
         if index is None:
             return
+
         container = self.day_container
         container.children[index].focus()
 
