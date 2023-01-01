@@ -19,6 +19,20 @@ DateSelect(
 )
 ```
 
+Define an inital value:
+
+```python
+import pendulum
+from textual_datepicker import DateSelect
+
+DateSelect(
+  placeholder="please select",
+  format="YYYY-MM-DD",
+  date=pendulum.parse("2023-02-14"),
+  picker_mount="#main_container"
+)
+```
+
 ## Installation
 
 ```bash
