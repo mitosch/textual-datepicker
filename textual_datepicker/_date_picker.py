@@ -240,9 +240,11 @@ class DatePicker(Widget):
         # OPTIMIZE: should focus first or last, not the exact one
         nearest = None
         for day_label in self.query("DayContainer DayLabel"):
-            if int(day_label.label) > 0:
+            if day_label.day == None:
+                continue
+            if day_label.day > 0:
                 nearest = day_label
-            if int(day_label.label) == event.day:
+            if day_label.day == event.day:
                 break
         nearest.focus()
 
