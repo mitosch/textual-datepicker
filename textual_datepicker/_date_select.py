@@ -119,6 +119,9 @@ class DateSelect(Widget, can_focus=True):
         if event.key == "enter":
             self._show_date_picker()
 
+    def on_blur(self) -> None:
+        pass
+
     def on_date_picker_selected(self, event: DatePicker.Selected) -> None:
         self.date = event.date
 
