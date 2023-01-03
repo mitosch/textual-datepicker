@@ -28,6 +28,21 @@ class MonthControl(Button, can_focus=True):
     pass
 
 
+class MonthHeader(Static):
+    DEFAULT_CSS = """
+    MonthHeader {
+        width: 20;
+        content-align: center top;
+        text-align: center;
+        text-style: bold;
+    }
+    MonthHeader:focus {
+        text-style: bold reverse;
+    }
+    """
+    pass
+
+
 class WeekdayContainer(Horizontal):
     pass
 
@@ -126,12 +141,6 @@ class DatePicker(Widget):
     DatePicker .header {
         height: 2;
     }
-    DatePicker .header .month {
-        width: 20;
-        content-align: center top;
-        text-align: center;
-        text-style: bold;
-    }
     DatePicker WeekdayContainer,
     DatePicker DayContainer {
         layout: grid;
@@ -208,7 +217,7 @@ class DatePicker(Widget):
         yield Vertical(
             Horizontal(
                 MonthControl("<", classes="left"),
-                Static(self._build_month_label(), classes="month"),
+                MonthHeader(self._build_month_label()),
                 MonthControl(">", classes="right"),
                 classes="header"
             ),
@@ -383,7 +392,7 @@ class DatePicker(Widget):
 
     def _update_month_label(self) -> None:
         try:
-            month_label = self.query_one("Static.month")
+            month_label = self.query_one(MonthHeader)
         except NoMatches:
             # not yet composed, do nothing
             return
