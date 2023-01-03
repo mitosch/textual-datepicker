@@ -184,11 +184,10 @@ class DatePicker(Widget):
     date = reactive(pendulum.today().start_of("month"))
 
     # The index of the focused day as int (including empty leading days)
-    focused: reactive[int | None] = reactive(None)
+    focused: int | None
 
     # The selected date (on enter, click)
-    # selected_date: reactive[pendulum.DateTime | None] = reactive(None)
-    selected_date: None
+    selected_date: pendulum.DateTime | None
 
     # Container with all the selectable days
     day_container = None
@@ -198,19 +197,10 @@ class DatePicker(Widget):
 
     @property
     def focused_day(self) -> DayLabel | None:
-        if self.focused is None:
+        try:
+            return self.query_one("DayLabel:focus")
+        except NoMatches:
             return None
-
-        if self.focused >= 0:
-            container = self.day_container
-            day_label = container.children[self.focused]
-
-            if day_label.day is None:
-                # an old non-selectable DayLabel may have/had focus
-                return None
-            return day_label
-
-        return None
 
     def compose(self) -> ComposeResult:
         self.day_container = DayContainer(*self._build_day_widgets())
@@ -229,13 +219,6 @@ class DatePicker(Widget):
         self._update_month_label()
         self._update_day_widgets()
 
-    def watch_focused(self, index) -> None:
-        if index is None:
-            return
-
-        container = self.day_container
-        container.children[index].focus()
-
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.has_class("left"):
             self._prev_month()
@@ -243,8 +226,7 @@ class DatePicker(Widget):
             self._next_month()
 
     def on_day_label_focused(self, event: DayLabel.Focused) -> None:
-        container = self.day_container
-        self.focused = container.children.index(event.sender)
+        self.focused = self.day_container.children.index(event.sender)
 
     def on_day_label_focus_lost(self, event: DayLabel.FocusLost) -> None:
         """The previous focused day is no longer focusable on this position.
@@ -252,9 +234,9 @@ class DatePicker(Widget):
         is always a focusable day. Otherwise to the first on the 2nd row.
         """
         if event.day >= 28:
-            self.focused = 27
+            self.day_container.children[27].focus()
         else:
-            self.focused = 7
+            self.day_container.children[7].focus()
 
     def on_day_label_selected(self, event: DayLabel.Selected) -> None:
         self.selected_date = pendulum.datetime(
@@ -300,7 +282,7 @@ class DatePicker(Widget):
             self.date.year, self.date.month, 1).add(months=month_count)
 
     def _handle_left(self) -> None:
-        focused_day = self._ensure_focused_day()
+        focused_day = self.focused_day
         if focused_day is None:
             return
 
@@ -314,10 +296,10 @@ class DatePicker(Widget):
         if nudging:
             self._prev_month()
         else:
-            self.focused -= 1
+            self.day_container.children[self.focused - 1].focus()
 
     def _handle_right(self) -> None:
-        focused_day = self._ensure_focused_day()
+        focused_day = self.focused_day
         if focused_day is None:
             return
 
@@ -329,17 +311,16 @@ class DatePicker(Widget):
             # 28 could be last day of month, check for an empty day at next index.
             # index can't be out of range because there is always an empty day
             # at the right
-            container = self.day_container
-            if container.children[self.focused + 1].day is None:
+            if self.day_container.children[self.focused + 1].day is None:
                 nudging = True
 
         if nudging:
             self._next_month()
         else:
-            self.focused += 1
+            self.day_container.children[self.focused + 1].focus()
 
     def _handle_down(self) -> None:
-        focused_day = self._ensure_focused_day()
+        focused_day = self.focused_day
         if focused_day is None:
             return
 
@@ -347,11 +328,10 @@ class DatePicker(Widget):
 
         if focused_day.day >= 28 - 7:
             # from 21, we always can go to 28. only check for days after.
-            container = self.day_container
             try:
                 # if day at index +7 is None, it's nudging
                 # also if there is no index
-                if container.children[self.focused + 7].day is None:
+                if self.day_container.children[self.focused + 7].day is None:
                     nudging = True
             except IndexError:
                 nudging = True
@@ -359,10 +339,10 @@ class DatePicker(Widget):
         if nudging:
             return
 
-        self.focused += 7
+        self.day_container.children[self.focused + 7].focus()
 
     def _handle_up(self) -> None:
-        focused_day = self._ensure_focused_day()
+        focused_day = self.focused_day
         if focused_day is None:
             return
 
@@ -374,21 +354,11 @@ class DatePicker(Widget):
         if nudging:
             return
 
-        self.focused -= 7
+        self.day_container.children[self.focused - 7].focus()
 
     def _handle_home(self) -> None:
         self.date = pendulum.today()
         self.query_one("DayLabel.--today").focus()
-
-    def _ensure_focused_day(self) -> DayLabel | None:
-        # for performance purposes, only query once
-        focused_day = self.focused_day
-        if self.focused is None:
-            return None
-        if focused_day is None:
-            return None
-
-        return focused_day
 
     def _update_month_label(self) -> None:
         try:
