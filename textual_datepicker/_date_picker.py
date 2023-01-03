@@ -11,7 +11,7 @@ from textual.reactive import reactive
 from textual.css.query import NoMatches
 from textual.message import Message
 
-# from textual import log
+from textual import log
 
 
 class MonthControl(Button, can_focus=True):
@@ -40,7 +40,22 @@ class MonthHeader(Static):
         text-style: bold reverse;
     }
     """
-    pass
+
+    # the date format to use for displaying the label
+    format = "MMMM\nYYYY"
+
+    def __init__(
+        self,
+        date: pendulum.DateTime,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes)
+        self.renderable = date.format(self.format)
+
+    def update(self, date: pendulum.DateTime) -> None:
+        super().update(date.format(self.format))
 
 
 class WeekdayContainer(Horizontal):
@@ -207,7 +222,7 @@ class DatePicker(Widget):
         yield Vertical(
             Horizontal(
                 MonthControl("<", classes="left"),
-                MonthHeader(self._build_month_label()),
+                MonthHeader(date=self.date),
                 MonthControl(">", classes="right"),
                 classes="header"
             ),
@@ -366,12 +381,7 @@ class DatePicker(Widget):
         except NoMatches:
             # not yet composed, do nothing
             return
-        month_label.update(self._build_month_label())
-
-    def _build_month_label(self) -> str:
-        month = self.date.format("MMMM")
-        year = self.date.format("YYYY")
-        return f"{month}\n{year}"
+        month_label.update(date=self.date)
 
     def _build_weekday_widgets(self) -> [WeekdayLabel]:
         widgets = []
