@@ -45,7 +45,6 @@ Requires textual 0.6.0 or later.
 
 This textual widget is in early stage and has some limitations:
 
-* Mouse interaction is not yet implemented.
 * It can only open below, not above: Make sure to reserve space below for the dialog.
 * It needs a specific mount point (`picker_mount`) where the dialog
   shall appear. This is needed because the container widget with the select

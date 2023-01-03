@@ -8,6 +8,8 @@ from textual.containers import Vertical
 from textual.reactive import reactive
 from textual.css.query import NoMatches
 
+# from textual import log
+
 from . import DatePicker
 
 
@@ -35,6 +37,13 @@ class DatePickerDialog(Widget):
         self.date_picker = DatePicker()
         self.date_picker.target = self.target
         yield Vertical(self.date_picker)
+
+    def on_blur(self) -> None:
+        self.display = False
+
+    def on_descendant_blur(self, event: events.DescendantBlur) -> None:
+        if len(self.query("*:focus-within")) == 0:
+            self.display = False
 
     def on_date_picker_selected(self, event: DatePicker.Selected) -> None:
         self.display = False
@@ -118,6 +127,9 @@ class DateSelect(Widget, can_focus=True):
     def on_key(self, event: events.Key) -> None:
         if event.key == "enter":
             self._show_date_picker()
+
+    def on_click(self, event: events.MouseEvent) -> None:
+        self._show_date_picker()
 
     def on_blur(self) -> None:
         pass

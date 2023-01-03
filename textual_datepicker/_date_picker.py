@@ -89,6 +89,12 @@ class DayLabel(Widget):
         if event.key == "enter":
             self.emit_no_wait(self.Selected(self, int(self.label)))
 
+    def on_click(self, event: events.MouseEvent) -> None:
+        if int(self.label) == 0:
+            return
+
+        self.emit_no_wait(self.Selected(self, int(self.label)))
+
     class Focused(Message):
         pass
 
