@@ -38,9 +38,6 @@ class DatePickerDialog(Widget):
         self.date_picker.target = self.target
         yield Vertical(self.date_picker)
 
-    def on_blur(self) -> None:
-        self.display = False
-
     def on_descendant_blur(self, event: events.DescendantBlur) -> None:
         if len(self.query("*:focus-within")) == 0:
             self.display = False
