@@ -57,6 +57,14 @@ class MonthHeader(Static):
     def update(self, date: pendulum.DateTime) -> None:
         super().update(date.format(self.format))
 
+    # def on_key(self, event: events.Key) -> None:
+    #     if event.key == "enter":
+    #         self.emit_no_wait(self.Selected(self))
+
+    # class Selected(Message):
+    #     """The MonthHeader was selected."""
+    #     pass
+
 
 class WeekdayContainer(Horizontal):
     pass
