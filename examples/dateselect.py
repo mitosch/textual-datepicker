@@ -1,4 +1,4 @@
-# import pendulum
+import pendulum
 
 from textual.app import App, ComposeResult
 from textual.containers import Vertical
@@ -16,6 +16,10 @@ class DateSelectApp(App):
     #main_container > Label {
         margin: 3 1 1 1;
     }
+
+    DateSelect {
+        width: 10;
+    }
     """
 
     BINDINGS = [
@@ -32,6 +36,7 @@ class DateSelectApp(App):
                 format="YYYY-MM-DD",
                 picker_mount="#main_container",
                 # date=pendulum.parse("2023-02-14")
+                date=pendulum.today()
             ),
 
             id="main_container"

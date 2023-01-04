@@ -103,6 +103,9 @@ class DateSelect(Widget, can_focus=True):
         width = self.content_size.width
         text_space = width - 2
 
+        if text_space < 0:
+            text_space = 0
+
         if not self.date:
             text = self.placeholder
         else:
@@ -156,5 +159,8 @@ class DateSelect(Widget, can_focus=True):
         else:
             try:
                 self.dialog.query_one("DayLabel.--today").focus()
-            except NoMatches:
+            except NoMatches:   # pragma: no cover
+                # should never happen, because DatePicker always opens this
+                # month without a given date. just to be sure,
+                # catching query_one fails.
                 self.dialog.query("DayLabel.--day").first().focus()

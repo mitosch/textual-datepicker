@@ -4,11 +4,9 @@
 
 * [ ] Optimize error message, when `picker_mount` selector can't find element
 * [x] Setup tests
-* [ ] Fulfill 100% test coverage
+* [x] Fulfill 100% test coverage
 
 ## Testing
-
-**NOTE:** Not implemented yet.
 
 ```bash
 # run tests
