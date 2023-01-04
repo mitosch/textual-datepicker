@@ -22,7 +22,6 @@ async def test_open_close():
         assert len(app.query("DateSelect")) == 1
         assert len(app.query("DatePicker")) == 1
         date_select = app.query_one("DateSelect")
-        # date_picker = app.query_one("DatePicker")
         assert date_select.date is None
 
         await pilot.press("tab")
