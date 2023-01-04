@@ -3,7 +3,7 @@
 ## Todos
 
 * [ ] Optimize error message, when `picker_mount` selector can't find element
-* [ ] Setup tests
+* [x] Setup tests
 * [ ] Fulfill 100% test coverage
 
 ## Testing
@@ -15,6 +15,6 @@
 poetry run pytest
 
 # run tests with coverage report:
-poetry run pytest --cov=textual_select/ tests/
+poetry run pytest --cov=textual_datepicker/ tests/
 poetry run coverage html
 ```
