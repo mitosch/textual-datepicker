@@ -15,6 +15,5 @@
 poetry run pytest
 
 # run tests with coverage report:
-poetry run pytest --cov=textual_datepicker/ tests/
-poetry run coverage html
+poetry run pytest --cov=textual_datepicker/ tests/ && poetry run coverage html
 ```

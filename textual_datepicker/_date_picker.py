@@ -11,7 +11,7 @@ from textual.reactive import reactive
 from textual.css.query import NoMatches
 from textual.message import Message
 
-from textual import log
+# from textual import log
 
 
 class MonthControl(Button, can_focus=True):
