@@ -28,15 +28,15 @@ class MonthControl(Button, can_focus=True):
     pass
 
 
-class MonthHeader(Static):
+class DatePickerHeader(Static, can_focus=True):
     DEFAULT_CSS = """
-    MonthHeader {
+    DatePickerHeader {
         width: 20;
         content-align: center top;
         text-align: center;
         text-style: bold;
     }
-    MonthHeader:focus {
+    DatePickerHeader:focus {
         text-style: bold reverse;
     }
     """
@@ -57,13 +57,13 @@ class MonthHeader(Static):
     def update(self, date: pendulum.DateTime) -> None:
         super().update(date.format(self.format))
 
-    # def on_key(self, event: events.Key) -> None:
-    #     if event.key == "enter":
-    #         self.emit_no_wait(self.Selected(self))
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "enter":
+            self.emit_no_wait(self.Selected(self))
 
-    # class Selected(Message):
-    #     """The MonthHeader was selected."""
-    #     pass
+    class Selected(Message):
+        """The DatePickerHeader was selected."""
+        pass
 
 
 class WeekdayContainer(Horizontal):
@@ -230,7 +230,7 @@ class DatePicker(Widget):
         yield Vertical(
             Horizontal(
                 MonthControl("<", classes="left"),
-                MonthHeader(date=self.date),
+                DatePickerHeader(date=self.date),
                 MonthControl(">", classes="right"),
                 classes="header"
             ),
@@ -385,11 +385,11 @@ class DatePicker(Widget):
 
     def _update_month_label(self) -> None:
         try:
-            month_label = self.query_one(MonthHeader)
+            header = self.query_one(DatePickerHeader)
         except NoMatches:
             # not yet composed, do nothing
             return
-        month_label.update(date=self.date)
+        header.update(date=self.date)
 
     def _build_weekday_widgets(self) -> [WeekdayLabel]:
         widgets = []
