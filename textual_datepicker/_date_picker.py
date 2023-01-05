@@ -5,7 +5,7 @@ import pendulum
 
 from textual.app import ComposeResult
 from textual.widget import Widget, RenderableType, events
-from textual.widgets import Static, Button
+from textual.widgets import Static, Button, ListView, ListItem, Label
 from textual.containers import Vertical, Horizontal
 from textual.reactive import reactive
 from textual.css.query import NoMatches
@@ -25,6 +25,9 @@ class DatePickerControl(Button, can_focus=True):
     DatePickerControl.-active,
     DatePickerControl:hover {
         border: none;
+    }
+    DatePickerControl.-hidden {
+        visibility: hidden;
     }
     """
     pass
@@ -63,6 +66,9 @@ class DatePickerHeader(Static, can_focus=True):
         if event.key == "enter":
             self.emit_no_wait(self.Selected(self))
 
+    def on_click(self, event: events.MouseEvent) -> None:
+        self.emit_no_wait(self.Selected(self))
+
     class Selected(Message):
         """The DatePickerHeader was selected."""
         pass
@@ -72,12 +78,59 @@ class WeekheaderContainer(Horizontal):
     pass
 
 
+class DateSelectionContainer(Vertical):
+    pass
+
+
 class MonthSelectionContainer(Vertical):
     pass
 
 
-class DateSelectionContainer(Vertical):
-    pass
+class YearSelectionContainer(ListView):
+    year = 0
+
+    # def select_year(self, year):
+    #     for year_item in self.children:
+    #         if year_item.year == year:
+    #             self.index = self.children.index(year_item)
+    #             break
+
+    def on_year_selection_item_shown(self, event):
+        if event.year == self.year:
+            self.index = self.children.index(event.sender)
+
+
+class YearSelectionItem(ListItem):
+    DEFAULT_CSS = """
+    YearSelectionItem {
+      align: center middle;
+    }
+    """
+
+    year: reactive[int] = reactive(0)
+
+    def __init__(
+        self,
+        year: 0,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+    ) -> None:
+        super().__init__(Label(str(year)), name=name, id=id, classes=classes)
+        self.year = year
+
+    def watch_year(self, year):
+        self.children[0].update(str(year))
+
+    async def on_show(self):
+        await self.emit(self.Shown(self, self.year))
+
+    class Shown(Message):
+        """Item is now visible."""
+
+        def __init__(self, sender: YearSelectionItem, year: int) -> None:
+            self.year = year
+            super().__init__(sender)
 
 
 class DayContainer(Horizontal):
@@ -107,6 +160,9 @@ class MonthLabel(Widget, can_focus=True):
     def on_key(self, event: events.Key) -> None:
         if event.key == "enter":
             self.emit_no_wait(self.Selected(self, self.month))
+
+    def on_click(self, event: events.MouseEvent) -> None:
+        self.emit_no_wait(self.Selected(self, self.month))
 
     class Selected(Message):
         """A month was selected."""
@@ -293,13 +349,19 @@ class DatePicker(Widget):
                 DatePickerControl(">", classes="right"),
                 classes="header"
             ),
-            MonthSelectionContainer(
-                MonthContainer(),
-            ),
             DateSelectionContainer(
                 WeekheaderContainer(*self._build_weekheader_widgets()),
                 self.day_container
-            )
+            ),
+            MonthSelectionContainer(
+                MonthContainer(),
+            ),
+            YearSelectionContainer(
+                *self._build_year_list_widgets()
+                # ListItem(Label("One")),
+                # ListItem(Label("Two")),
+                # ListItem(Label("Three")),
+            ),
         )
 
     def watch_date(self, _old_date, _new_date) -> None:
@@ -309,12 +371,16 @@ class DatePicker(Widget):
     def watch_selection_type(self, selection_type) -> None:
         log("******===> selection type: ", selection_type)
         if selection_type == "date":
-            self.query_one(DateSelectionContainer).display = True
             self.query_one(MonthSelectionContainer).display = False
+            self.query_one(YearSelectionContainer).display = False
+            self.query(DatePickerControl).remove_class("-hidden")
+            self.query_one(DateSelectionContainer).display = True
             self.query_one(DatePickerHeader).format = "MMMM\nYYYY"
             self.query_one(DatePickerHeader).update(self.date)
         elif selection_type == "month":
             self.query_one(DateSelectionContainer).display = False
+            self.query_one(YearSelectionContainer).display = False
+            self.query(DatePickerControl).remove_class("-hidden")
             self.query_one(MonthSelectionContainer).display = True
             self.query_one(DatePickerHeader).format = "YYYY"
             self.query_one(DatePickerHeader).update(self.date)
@@ -322,12 +388,26 @@ class DatePicker(Widget):
                 if month.month == self.date.month:
                     month.focus()
                     break
+        elif selection_type == "year":
+            year_container = self.query_one(YearSelectionContainer)
+            self.query_one(DateSelectionContainer).display = False
+            self.query_one(MonthSelectionContainer).display = False
+            self.query(DatePickerControl).add_class("-hidden")
+            self._update_year_list_widgets()
+            year_container.display = True
+            year_container.year = self.date.year
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.has_class("left"):
-            self._prev_month()
+            if self.selection_type == "date":
+                self._prev_month()
+            elif self.selection_type == "month":
+                self._prev_year()
         if event.button.has_class("right"):
-            self._next_month()
+            if self.selection_type == "date":
+                self._next_month()
+            elif self.selection_type == "month":
+                self._next_year()
 
     def on_day_label_focused(self, event: DayLabel.Focused) -> None:
         self.focused = self.day_container.children.index(event.sender)
@@ -352,29 +432,45 @@ class DatePicker(Widget):
         if self.target is not None:
             self.target.post_message_no_wait(self.Selected(self, self.selected_date))
 
+    def on_month_label_selected(self, event: MonthLabel.Selected) -> None:
+        log("MonthLabel.Selected:", event.month)
+        self.date = pendulum.datetime(self.date.year, event.month, self.date.day)
+        self.selection_type = "date"
+
     def on_date_picker_header_selected(self, event: DatePickerHeader.Selected) -> None:
         log("DatePickerHeader selected")
-        self.selection_type = "month"
+        if self.selection_type == "date":
+            self.selection_type = "month"
+        elif self.selection_type == "month":
+            self.selection_type = "year"
+        else:
+            self.selection_type = "date"
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "pageup":
             event.prevent_default()
-            self._prev_month()
+            if self.selection_type == "date":
+                self._prev_month()
+            elif self.selection_type == "month":
+                self._prev_year()
         if event.key == "pagedown":
             event.prevent_default()
-            self._next_month()
+            if self.selection_type == "date":
+                self._next_month()
+            elif self.selection_type == "month":
+                self._next_year()
         if event.key == "left":
             event.prevent_default()
             self._handle_left()
         if event.key == "right":
             event.prevent_default()
             self._handle_right()
-        if event.key == "down":
-            event.prevent_default()
-            self._handle_down()
-        if event.key == "up":
-            event.prevent_default()
-            self._handle_up()
+        # if event.key == "down":
+        #     event.prevent_default()
+        #     self._handle_down()
+        # if event.key == "up":
+        #     event.prevent_default()
+        #     self._handle_up()
         if event.key == "home":
             event.prevent_default()
             self._handle_home()
@@ -385,9 +481,19 @@ class DatePicker(Widget):
     def _next_month(self) -> None:
         self._move_month(1)
 
+    def _prev_year(self) -> None:
+        self._move_year(-1)
+
+    def _next_year(self) -> None:
+        self._move_year(1)
+
     def _move_month(self, month_count: int) -> None:
         self.date = pendulum.datetime(
             self.date.year, self.date.month, 1).add(months=month_count)
+
+    def _move_year(self, year_count: int) -> None:
+        self.date = pendulum.datetime(
+            self.date.year, self.date.month, 1).add(years=year_count)
 
     def _handle_left(self) -> None:
         focused_day = self.focused_day
@@ -516,6 +622,21 @@ class DatePicker(Widget):
                 day_label.update(days[idx])
             else:
                 day_label.update(0)
+
+    def _build_year_list_widgets(self) -> [ListItem]:
+        years = []
+        for year in range(self.date.year - 50, self.date.year + 50):
+            # year_item = ListItem(Label(str(year)))
+            year_item = YearSelectionItem(year)
+            years.append(year_item)
+
+        return years
+
+    def _update_year_list_widgets(self) -> None:
+        start = self.date.year - 50
+        for idx, year_item in enumerate(self.query(YearSelectionItem)):
+            year_item.year = start
+            start += 1
 
     def _today_in_month(self) -> int | None:
         """Returns todays day, if today is in the current month (self.date).
