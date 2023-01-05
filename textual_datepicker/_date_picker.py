@@ -11,7 +11,7 @@ from textual.reactive import reactive
 from textual.css.query import NoMatches
 from textual.message import Message
 
-# from textual import log
+from textual import log
 
 
 class MonthControl(Button, can_focus=True):
@@ -66,7 +66,7 @@ class DatePickerHeader(Static, can_focus=True):
         pass
 
 
-class WeekdayContainer(Horizontal):
+class WeekheaderContainer(Horizontal):
     pass
 
 
@@ -74,7 +74,7 @@ class DayContainer(Horizontal):
     pass
 
 
-class WeekdayLabel(Static):
+class WeekheaderLabel(Static):
     pass
 
 
@@ -164,7 +164,7 @@ class DatePicker(Widget):
     DatePicker .header {
         height: 2;
     }
-    DatePicker WeekdayContainer,
+    DatePicker WeekheaderContainer,
     DatePicker DayContainer {
         layout: grid;
         grid-size: 7;
@@ -176,10 +176,10 @@ class DatePicker(Widget):
         width: 3;
         max-width: 3;
     }
-    DatePicker WeekdayContainer {
+    DatePicker WeekheaderContainer {
         height: 2;
     }
-    DatePicker WeekdayLabel {
+    DatePicker WeekheaderLabel {
         color: $text-muted;
     }
     DatePicker DayLabel {
@@ -234,7 +234,7 @@ class DatePicker(Widget):
                 MonthControl(">", classes="right"),
                 classes="header"
             ),
-            WeekdayContainer(*self._build_weekday_widgets()),
+            WeekheaderContainer(*self._build_weekheader_widgets()),
             self.day_container
         )
 
@@ -270,6 +270,9 @@ class DatePicker(Widget):
 
         if self.target is not None:
             self.target.post_message_no_wait(self.Selected(self, self.selected_date))
+
+    def on_date_picker_header_selected(self, event: DatePickerHeader.Selected) -> None:
+        log("DatePickerHeader selected")
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "pageup":
@@ -391,11 +394,11 @@ class DatePicker(Widget):
             return
         header.update(date=self.date)
 
-    def _build_weekday_widgets(self) -> [WeekdayLabel]:
+    def _build_weekheader_widgets(self) -> [WeekheaderLabel]:
         widgets = []
         weekdays = calendar.weekheader(2).split(" ")
         for day in weekdays:
-            widgets.append(WeekdayLabel(day))
+            widgets.append(WeekheaderLabel(day))
 
         return widgets
 
