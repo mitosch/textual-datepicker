@@ -30,7 +30,7 @@ async def test_month_control():
 
         assert app.focused is None
         await pilot.press("tab")
-        assert app.focused == app.query("DatePicker MonthControl").first()
+        assert app.focused == app.query("DatePicker DatePickerControl").first()
         await pilot.press("enter")
 
         last_month = pendulum.today().add(months=-1)
@@ -40,7 +40,7 @@ async def test_month_control():
         await pilot.press("tab")
         assert app.focused == app.query("DatePicker DatePickerHeader").first()
         await pilot.press("tab")
-        assert app.focused == app.query("DatePicker MonthControl").last()
+        assert app.focused == app.query("DatePicker DatePickerControl").last()
         await pilot.press("enter")
         assert month_header.renderable == Text(current_month_str)
         await pilot.press("enter")
@@ -64,7 +64,7 @@ async def test_month_control_one_year_back():
         date_picker = app.query_one(DatePicker)
 
         await pilot.press("tab")
-        assert app.focused == app.query("DatePicker MonthControl").first()
+        assert app.focused == app.query("DatePicker DatePickerControl").first()
         for month in range(1, 13):
             await pilot.press("enter")
 
@@ -88,7 +88,7 @@ async def test_keys_pageup_pagedown_home():
         current_month = pendulum.today().start_of("month")
 
         await pilot.press("tab")
-        assert app.focused == app.query("DatePicker MonthControl").first()
+        assert app.focused == app.query("DatePicker DatePickerControl").first()
 
         assert date_picker.date == current_month
         await pilot.press("pageup")
@@ -137,7 +137,7 @@ async def test_keys_up_down_left_right():
         assert date_picker.date == aug22
 
         await pilot.press("tab")
-        assert app.focused == app.query("DatePicker MonthControl").first()
+        assert app.focused == app.query("DatePicker DatePickerControl").first()
 
         assert date_picker.date == aug22
         await pilot.press("up")

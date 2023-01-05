@@ -14,14 +14,16 @@ from textual.message import Message
 from textual import log
 
 
-class MonthControl(Button, can_focus=True):
+class DatePickerControl(Button, can_focus=True):
     DEFAULT_CSS = """
-    MonthControl {
+    DatePickerControl {
         height: 1;
+        width: 3;
+        max-width: 3;
         border: none;
     }
-    MonthControl.-active,
-    MonthControl:hover {
+    DatePickerControl.-active,
+    DatePickerControl:hover {
         border: none;
     }
     """
@@ -211,10 +213,6 @@ class DatePicker(Widget):
         grid-rows: 1;
         grid-gutter: 1 2;
     }
-    DatePicker MonthControl {
-        width: 3;
-        max-width: 3;
-    }
     DatePicker WeekheaderContainer {
         height: 2;
     }
@@ -290,9 +288,9 @@ class DatePicker(Widget):
         self.day_container = DayContainer(*self._build_day_widgets())
         yield Vertical(
             Horizontal(
-                MonthControl("<", classes="left"),
+                DatePickerControl("<", classes="left"),
                 DatePickerHeader(date=self.date),
-                MonthControl(">", classes="right"),
+                DatePickerControl(">", classes="right"),
                 classes="header"
             ),
             MonthSelectionContainer(
