@@ -18,6 +18,8 @@ class DateSelectApp(App):
     }
     """
 
+    CSS_PATH = "dateselect.css"
+
     BINDINGS = [
         ("f10", "app.quit", "Exit")
     ]

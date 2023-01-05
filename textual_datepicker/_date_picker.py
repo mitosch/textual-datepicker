@@ -70,8 +70,48 @@ class WeekheaderContainer(Horizontal):
     pass
 
 
+class MonthSelectionContainer(Vertical):
+    pass
+
+
+class DateSelectionContainer(Vertical):
+    pass
+
+
 class DayContainer(Horizontal):
     pass
+
+
+class MonthContainer(Horizontal):
+    def compose(self) -> ComposeResult:
+        for m in range(1, 13):
+            yield MonthLabel(m)
+
+
+class MonthLabel(Widget, can_focus=True):
+    def __init__(
+        self,
+        month: 0,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes)
+        self.month = month
+
+    def render(self) -> RenderableType:
+        return calendar.month_abbr[self.month]
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "enter":
+            self.emit_no_wait(self.Selected(self, self.month))
+
+    class Selected(Message):
+        """A month was selected."""
+
+        def __init__(self, sender: MonthLabel, month: int) -> None:
+            self.month = month
+            super().__init__(sender)
 
 
 class WeekheaderLabel(Static):
@@ -158,7 +198,6 @@ class DatePicker(Widget):
         width: 26;
         height: 15;
         box-sizing: content-box;
-        /*border: solid $panel;*/
         padding: 0 1;
     }
     DatePicker .header {
@@ -198,6 +237,25 @@ class DatePicker(Widget):
     DatePicker DayLabel.--day:hover {
         background: $surface-lighten-2;
     }
+
+    DatePicker MonthSelectionContainer {
+        display: none;
+    }
+    DatePicker MonthContainer {
+        layout: grid;
+        grid-size: 3;
+        grid-columns: 7;
+        grid-rows: 2;
+        grid-gutter: 1 2;
+        padding-top: 1;
+    }
+    DatePicker MonthLabel {
+        height: 100%;
+        content-align: center top;
+    }
+    DatePicker MonthLabel:focus {
+        text-style: bold reverse;
+    }
     """
 
     # label on the top with month and year
@@ -218,6 +276,9 @@ class DatePicker(Widget):
     # A target widget where to send the message for a selected date
     target: Widget | None = None
 
+    # Type of selection: date (monthly calendar), month (12 months), year (list)
+    selection_type: reactive[str] = reactive("date")
+
     @property
     def focused_day(self) -> DayLabel | None:
         try:
@@ -234,13 +295,35 @@ class DatePicker(Widget):
                 MonthControl(">", classes="right"),
                 classes="header"
             ),
-            WeekheaderContainer(*self._build_weekheader_widgets()),
-            self.day_container
+            MonthSelectionContainer(
+                MonthContainer(),
+            ),
+            DateSelectionContainer(
+                WeekheaderContainer(*self._build_weekheader_widgets()),
+                self.day_container
+            )
         )
 
     def watch_date(self, _old_date, _new_date) -> None:
         self._update_month_label()
         self._update_day_widgets()
+
+    def watch_selection_type(self, selection_type) -> None:
+        log("******===> selection type: ", selection_type)
+        if selection_type == "date":
+            self.query_one(DateSelectionContainer).display = True
+            self.query_one(MonthSelectionContainer).display = False
+            self.query_one(DatePickerHeader).format = "MMMM\nYYYY"
+            self.query_one(DatePickerHeader).update(self.date)
+        elif selection_type == "month":
+            self.query_one(DateSelectionContainer).display = False
+            self.query_one(MonthSelectionContainer).display = True
+            self.query_one(DatePickerHeader).format = "YYYY"
+            self.query_one(DatePickerHeader).update(self.date)
+            for month in self.query(MonthLabel):
+                if month.month == self.date.month:
+                    month.focus()
+                    break
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.has_class("left"):
@@ -273,6 +356,7 @@ class DatePicker(Widget):
 
     def on_date_picker_header_selected(self, event: DatePickerHeader.Selected) -> None:
         log("DatePickerHeader selected")
+        self.selection_type = "month"
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "pageup":
