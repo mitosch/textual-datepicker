@@ -19,7 +19,7 @@ DateSelect(
 )
 ```
 
-Define an inital value:
+Define an initial value:
 
 ```python
 import pendulum
