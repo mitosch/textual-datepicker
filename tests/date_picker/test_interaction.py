@@ -258,7 +258,7 @@ async def test_down_nudging_by_index_error():
         await pilot.press("left")
         await pilot.press("down")
         assert app.focused.day == 31
-        # handle down with IndexError catched here:
+        # handle down with IndexError caught here:
         await pilot.press("down")
         assert app.focused.day == 31
 
