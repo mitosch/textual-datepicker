@@ -111,7 +111,7 @@ class DayLabel(Widget):
     def update(self, label: str) -> None:
         if int(label) == 0:
             if self.has_focus:
-                self.emit_no_wait(self.FocusLost(self, int(self.label)))
+                self.post_message(self.FocusLost(self, int(self.label)))
             self.can_focus = False
             self.remove_class("--day")
         else:
@@ -120,21 +120,23 @@ class DayLabel(Widget):
         self.label = label
         self.refresh(layout=True)
 
-    async def on_focus(self, _event: events.Focus) -> None:
-        await self.emit(self.Focused(self))
+    def on_focus(self, _event: events.Focus) -> None:
+        self.post_message(self.Focused(self))
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "enter":
-            self.emit_no_wait(self.Selected(self, int(self.label)))
+            self.post_message(self.Selected(self, int(self.label)))
 
     def on_click(self, event: events.MouseEvent) -> None:
         if int(self.label) == 0:
             return
 
-        self.emit_no_wait(self.Selected(self, int(self.label)))
+        self.post_message(self.Selected(self, int(self.label)))
 
     class Focused(Message):
-        pass
+        def __init__(self, sender):
+            super().__init__()
+            self.sender = sender
 
     class FocusLost(Message):
         """A focusable day have become an unfocusable one."""
@@ -142,14 +144,14 @@ class DayLabel(Widget):
         def __init__(self, sender: DayLabel, day: int) -> None:
             # day: the old day which had the focus
             self.day = day
-            super().__init__(sender)
+            super().__init__()
 
     class Selected(Message):
         """A day was selected."""
 
         def __init__(self, sender: DayLabel, day: int) -> None:
             self.day = day
-            super().__init__(sender)
+            super().__init__()
 
 
 class DatePicker(Widget):
@@ -218,6 +220,9 @@ class DatePicker(Widget):
     # A target widget where to send the message for a selected date
     target: Widget | None = None
 
+    def __init__(self):
+        super().__init__()
+
     @property
     def focused_day(self) -> DayLabel | None:
         try:
@@ -266,10 +271,10 @@ class DatePicker(Widget):
             self.date.year, self.date.month, event.day
         )
 
-        self.emit_no_wait(self.Selected(self, self.selected_date))
+        self.post_message(self.Selected(self, self.selected_date))
 
         if self.target is not None:
-            self.target.post_message_no_wait(self.Selected(self, self.selected_date))
+            self.target.post_message(self.Selected(self, self.selected_date))
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "pageup":
@@ -447,4 +452,4 @@ class DatePicker(Widget):
 
         def __init__(self, sender: DatePicker, date: pendulum.DateTime) -> None:
             self.date = date
-            super().__init__(sender)
+            super().__init__()
